@@ -36,11 +36,10 @@ func restaurant(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		fmt.Fprintln(w, "update existing restaurant")
 	case "DELETE":
-		fmt.Fprintln(w, "delete existing restaurant")
+		delete(id, w)
 	default:
 		respondWithError(w, http.StatusBadRequest, "Unsupported HTTP method")
 	}
-	//check if is int, if not fallback to restaurants
 }
 
 func restaurants(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +51,24 @@ func restaurants(w http.ResponseWriter, r *http.Request) {
 	default:
 		respondWithError(w, http.StatusBadRequest, "Unsupported HTTP method")
 	}
+}
+
+func delete(id int, w http.ResponseWriter) {
+	var restaurant Restaurant
+	restaurant.ID = id
+
+	db, err := storm.Open("my.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.DeleteStruct(&restaurant)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Restaurant not found")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, nil)
 }
 
 func getone(id int, w http.ResponseWriter) {
