@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/asdine/storm"
 )
 
 func main() {
 	http.HandleFunc("/restaurants", restaurants)
-	http.HandleFunc("/restaurants/", getone)
+	http.HandleFunc("/restaurants/", restaurant)
 
 	fmt.Println("Starting the server on :8080")
 	http.ListenAndServe(":8080", nil)
@@ -20,24 +22,67 @@ func healtcheck(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "All is well")
 }
 
-func getone(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Get one")
+func restaurant(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/restaurants/")
+	id, err := strconv.Atoi(path)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid ID")
+		return
+	}
+
+	switch r.Method {
+	case "GET":
+		getone(id, w)
+	case "PUT":
+		fmt.Fprintln(w, "update existing restaurant")
+	case "DELETE":
+		fmt.Fprintln(w, "delete existing restaurant")
+	default:
+		respondWithError(w, http.StatusBadRequest, "Unsupported HTTP method")
+	}
 	//check if is int, if not fallback to restaurants
 }
 
 func restaurants(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		fmt.Fprintln(w, "get list of restaurants")
+		list(w)
 	case "POST":
 		create(w, r)
-	case "PUT":
-		fmt.Fprintln(w, "update existing restaurant")
-	case "DELETE":
-		fmt.Fprintln(w, "delete existing restaurant")
 	default:
-		fmt.Fprintln(w, "unsupported http method")
+		respondWithError(w, http.StatusBadRequest, "Unsupported HTTP method")
 	}
+}
+
+func getone(id int, w http.ResponseWriter) {
+	var restaurant Restaurant
+	db, err := storm.Open("my.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.One("ID", id, &restaurant)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Restaurant not found")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, restaurant)
+}
+
+func list(w http.ResponseWriter) {
+	var restaurants []Restaurant
+	db, err := storm.Open("my.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.AllByIndex("ID", &restaurants)
+	if err != nil {
+		panic(err)
+	}
+	respondWithJSON(w, http.StatusOK, restaurants)
 }
 
 func create(w http.ResponseWriter, r *http.Request) {
