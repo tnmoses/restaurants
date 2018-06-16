@@ -1,7 +1,7 @@
 FROM golang:latest
-RUN mkdir /app
-ADD ./main.go /app/
-WORKDIR /app
+COPY ./app /go/src/github.com/tnmoses/restaurants/app
+WORKDIR /go/src/github.com/tnmoses/restaurants/app
 EXPOSE 8080
+RUN go get ./
 RUN go build -o restaurants .
-CMD ["/app/restaurants"]
+CMD ["/go/src/github.com/tnmoses/restaurants/app/restaurants"]
