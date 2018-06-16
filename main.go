@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/asdine/storm"
+	reflections "gopkg.in/oleiade/reflections.v1"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func restaurant(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		getone(id, w)
 	case "PUT":
-		fmt.Fprintln(w, "update existing restaurant")
+		update(id, w, r)
 	case "DELETE":
 		delete(id, w)
 	default:
@@ -53,6 +54,51 @@ func restaurants(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func update(id int, w http.ResponseWriter, r *http.Request) {
+	var restaurant Restaurant
+	db, err := storm.Open("my.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	// get restaurant that should be updated
+	err = db.One("ID", id, &restaurant)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Restaurant not found")
+		return
+	}
+
+	// parse the JSON
+	jsonMap := make(map[string]interface{})
+	if err = json.NewDecoder(r.Body).Decode(&jsonMap); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	// update restaurant struct with data contained in jsonMap
+	for key, value := range jsonMap {
+		if key != "ID" {
+			err = reflections.SetField(&restaurant, key, value)
+			if err != nil {
+				respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+				return
+			}
+		} else {
+			respondWithError(w, http.StatusBadRequest, "Cannot update primary key")
+			return
+		}
+	}
+
+	// save update restaurant struct
+	err = db.Save(&restaurant)
+	if err != nil {
+		respondWithError(w, http.StatusNotModified, "Restaurant not update")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, restaurant)
+}
+
 func delete(id int, w http.ResponseWriter) {
 	var restaurant Restaurant
 	restaurant.ID = id
@@ -68,7 +114,7 @@ func delete(id int, w http.ResponseWriter) {
 		respondWithError(w, http.StatusNotFound, "Restaurant not found")
 		return
 	}
-	respondWithJSON(w, http.StatusOK, nil)
+	respondWithJSON(w, http.StatusNoContent, nil)
 }
 
 func getone(id int, w http.ResponseWriter) {
@@ -119,7 +165,6 @@ func create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", restaurant)
 	respondWithJSON(w, http.StatusCreated, restaurant)
 }
 
