@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/asdine/storm"
@@ -10,7 +11,7 @@ import (
 
 // Update handles http PUT requests to a single resource
 func Update(id int, w http.ResponseWriter, r *http.Request) {
-	// PUT method handler
+	log.Printf("%s\t%s\t%s", "UPDATE", r.RequestURI, "Update")
 	var restaurant Restaurant
 	db, err := storm.Open("my.db")
 	if err != nil {
@@ -55,7 +56,8 @@ func Update(id int, w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, restaurant)
 }
 
-func Delete(id int, w http.ResponseWriter) {
+func Delete(id int, w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s\t%s\t%s", "DELETE", r.RequestURI, "Delete")
 	var restaurant Restaurant
 	restaurant.ID = id
 
@@ -73,7 +75,8 @@ func Delete(id int, w http.ResponseWriter) {
 	RespondWithJSON(w, http.StatusNoContent, nil)
 }
 
-func GetOne(id int, w http.ResponseWriter) {
+func GetOne(id int, w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s\t%s\t%s", "GET", r.RequestURI, "GetOne")
 	var restaurant Restaurant
 	db, err := storm.Open("my.db")
 	if err != nil {
@@ -89,7 +92,8 @@ func GetOne(id int, w http.ResponseWriter) {
 	RespondWithJSON(w, http.StatusOK, restaurant)
 }
 
-func List(w http.ResponseWriter) {
+func List(w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s\t%s\t%s", "GET", r.RequestURI, "List")
 	var restaurants []Restaurant
 	db, err := storm.Open("my.db")
 	if err != nil {
@@ -105,6 +109,7 @@ func List(w http.ResponseWriter) {
 }
 
 func Create(w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s\t%s\t%s", "POST", r.RequestURI, "Create")
 	var restaurant Restaurant
 	if err := json.NewDecoder(r.Body).Decode(&restaurant); err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Invalid request payload")

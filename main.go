@@ -23,11 +23,11 @@ func restaurant(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case "GET":
-		GetOne(id, w)
+		GetOne(id, w, r)
 	case "PUT":
 		Update(id, w, r)
 	case "DELETE":
-		Delete(id, w)
+		Delete(id, w, r)
 	default:
 		RespondWithError(w, http.StatusBadRequest, "Unsupported HTTP method")
 	}
@@ -36,7 +36,7 @@ func restaurant(w http.ResponseWriter, r *http.Request) {
 func restaurants(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		List(w)
+		List(w, r)
 	case "POST":
 		Create(w, r)
 	default:
