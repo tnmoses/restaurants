@@ -13,7 +13,7 @@ A REST API built in Go backed by BoltDB, a pure Go database.
 
 ## Getting Started
 ```bash
-git clone github.com/tnmoses/restaurants
+git clone github.com/tnmoses/restaurants.git
 cd restaurants
 docker build -t restaurants -f Dockerfile .
 docker run -p 8080:8080 restaurants
