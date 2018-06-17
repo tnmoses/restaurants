@@ -75,6 +75,7 @@ func Delete(id int, w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusNoContent, nil)
 }
 
+// GetOne finds and returns a Restaurant by the id provided
 func GetOne(id int, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s\t%s\t%s", "GET", r.RequestURI, "GetOne")
 	var restaurant Restaurant
@@ -108,6 +109,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, restaurants)
 }
 
+// Create saves a new Restaurant to the database
 func Create(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s\t%s\t%s", "POST", r.RequestURI, "Create")
 	var restaurant Restaurant
@@ -127,4 +129,16 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	RespondWithJSON(w, http.StatusCreated, restaurant)
+}
+
+// Health opens a DB connection and returns succesfully if the connection succeeds
+func Health(w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s\t%s\t%s", "GET", r.RequestURI, "Health")
+
+	db, err := storm.Open("my.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	RespondWithJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }

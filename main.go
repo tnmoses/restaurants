@@ -10,6 +10,7 @@ import (
 func main() {
 	http.HandleFunc("/restaurants", restaurants)
 	http.HandleFunc("/restaurants/", restaurant)
+	http.HandleFunc("/v1/healthcheck/", Health)
 	fmt.Println("Starting the server on :8080")
 	http.ListenAndServe(":8080", nil)
 }
