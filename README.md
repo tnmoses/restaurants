@@ -9,6 +9,7 @@ A REST API built in Go backed by BoltDB, a pure Go database.
   - [Get one restaurant](#get-one-restaurant)
   - [Update restaurant](#update-restaurant)
   - [Delete restaurant](#delete-restaurant)
+  - [Health Check](#health-check)
 
 ## Getting Started
 ```bash
@@ -131,5 +132,15 @@ HTTP Status Code: 404
 ```JSON
 {
   "error": "Restaurant not found"
+}
+```
+### Health Check
+GET /v1/healthcheck
+
+##### Success response
+HTTP Status Code: 200
+```JSON
+{
+  "status": "ok"
 }
 ```
